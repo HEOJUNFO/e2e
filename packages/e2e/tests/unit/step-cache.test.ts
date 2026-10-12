@@ -535,6 +535,15 @@ describe('StepTraceSession', () => {
     });
   });
 
+  it('does not say the outcome already showed when the recording has no delta to show', async () => {
+    const session = makeSession(entryContext({ endPath: '/customers' }), makeHost(['/customers', '/customers'], [[savedMarker]]));
+    expect(await session.begin()).toBeUndefined();
+    expect(session.cacheInfo).toMatchObject({
+      reason: 'end-mismatch',
+      detail: 'every recorded action ran, but the recorded end state did not show on /customers',
+    });
+  });
+
   it('heals stale anchors when the executor settled an end-mismatch without acting', async () => {
     const context = entryContext({ endPath: '/customers', endAnchors: [savedAnchor] });
     const session = recordingSession(context, ['/pricing', '/customers', '/customers']);

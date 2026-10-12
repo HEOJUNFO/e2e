@@ -489,7 +489,12 @@ export class StepTraceSession {
     // ledger as it is now, an unchanged node is no change.
     const baseline = baselineScreen(screens, arrived.path);
     const baselineNodes = baseline === undefined ? undefined : redactNodesAgain(baseline.nodes, this.redaction);
-    if (!deltaEvidenced(trace, baselineNodes, inputTargets(trace))) return { matches: false, failure: 'already-showing' };
+    if (!deltaEvidenced(trace, baselineNodes, inputTargets(trace))) {
+      // A recording with no delta fails the evidence too, but nothing of it
+      // showed before the replay acted: that is the generic detail.
+      const recorded = (trace.endAnchors?.length ?? 0) > 0 || (trace.goneAnchors?.length ?? 0) > 0;
+      return recorded ? { matches: false, failure: 'already-showing' } : { matches: false };
+    }
     const beforeNodes = baselineNodes ?? redactNodesAgain(start.nodes, this.redaction);
     // Every look the wait takes must still be on the recorded end route: a
     // screen that moved on after the route first matched is another screen.
